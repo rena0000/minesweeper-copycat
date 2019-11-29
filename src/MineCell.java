@@ -2,14 +2,18 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MineCell extends JButton {
+
+    Minesweeper game;
+
     // --------BUTTON DIMENSION--------
     static final int CELL_WIDTH = 40;
     static final Dimension CELL_DIMENSION = new Dimension(CELL_WIDTH, CELL_WIDTH);
 
     // -------------IMAGES-------------
-    // static ImageIcon OG_SMILEY = new ImageIcon(Minesweeper.class.getResource("/images/smiley.png"));
-    // static ImageIcon OG_WIN_FACE = new ImageIcon(Minesweeper.class.getResource("/images/win.jpg"));
-    // static ImageIcon OG_BAD_MINE = new ImageIcon(Minesweeper.class.getResource("/images/winFace.png"));
+    static ImageIcon OG_SMILEY = new ImageIcon(Minesweeper.class.getResource("/images/face.jpg"));
+    static ImageIcon OG_WIN_FACE = new ImageIcon(Minesweeper.class.getResource("/images/winFace.jpg"));
+    static ImageIcon OG_LOSE_FACE = new ImageIcon(Minesweeper.class.getResource("/images/loseFace.png"));
+    static ImageIcon OG_BAD_MINE = new ImageIcon(Minesweeper.class.getResource("/images/wrongMine.jpg"));
     static ImageIcon OG_BLANK_TILE = new ImageIcon(Minesweeper.class.getResource("/images/blank.jpg"));
     static ImageIcon OG_MINE = new ImageIcon(Minesweeper.class.getResource("/images/mine.jpg"));
     static ImageIcon OG_FLAG = new ImageIcon(Minesweeper.class.getResource("/images/flag.jpg"));
@@ -22,9 +26,10 @@ public class MineCell extends JButton {
     static ImageIcon OG_SEVEN = new ImageIcon(Minesweeper.class.getResource("/images/seven.png"));
     static ImageIcon OG_EIGHT = new ImageIcon(Minesweeper.class.getResource("/images/eight.png"));
     // Scale
-    // static final ImageIcon SMILEY = getScaledImageIcon(OG_SMILEY);
-    // static final ImageIcon WIN_FACE = getScaledImageIcon(OG_WIN_FACE);
-    // static final ImageIcon BAD_MINE = getScaledImageIcon(OG_BAD_MINE);
+    static final ImageIcon SMILEY = getScaledImageIcon(OG_SMILEY);
+    static final ImageIcon WIN_FACE = getScaledImageIcon(OG_WIN_FACE);
+    static final ImageIcon LOSE_FACE = getScaledImageIcon(OG_LOSE_FACE);
+    static final ImageIcon BAD_MINE = getScaledImageIcon(OG_BAD_MINE);
     static final ImageIcon BLANK_TILE = getScaledImageIcon(OG_BLANK_TILE);
     static final ImageIcon MINE = getScaledImageIcon(OG_MINE);
     static final ImageIcon FLAG = getScaledImageIcon(OG_FLAG);
@@ -41,14 +46,20 @@ public class MineCell extends JButton {
 
     // ----------CELL ATTRIBUTES---------
     private int cellValue;
+    private int cellRowLocation;
+    private int cellColLocation;
     private boolean isMine;
     private boolean isExposed;
     private boolean isFlagged;
 
-    public MineCell(int cellValue) {
+
+    public MineCell(Minesweeper game, int cellValue, int cellRowLocation, int cellColLocation) {
     // Cell constructor
         // Set attributes
         this.cellValue = cellValue;
+        this.cellRowLocation = cellRowLocation;
+        this.cellColLocation = cellColLocation;
+        this.game = game;
         isExposed = false;
         isFlagged = false;
         isMine = (cellValue == -1);
@@ -92,11 +103,90 @@ public class MineCell extends JButton {
         }
     }
 
-    public void exposeCell() {
-        isExposed = true;
-        assignImage();
+    public int getCellRow() {
+        return cellRowLocation;
     }
 
+    public int getCellCol() {
+        return cellColLocation;
+    }
+
+    public boolean checkIsExposed() {
+        return isExposed;
+    }
+
+    public boolean checkIsFlagged() {
+        return isFlagged;
+    }
+
+    public void exposeCell() {
+    // Make cell value visible
+        if (!isExposed) {
+            isExposed = true;
+            // Check if game lost
+            if (isMine) {
+                game.loseGame();
+                setIcon(BAD_MINE);
+                exposeAll();
+            }
+            // Expose more if cell is zero
+            else {
+                assignImage();
+                if (cellValue == 0) {
+                    exposeZero();
+                }
+            }
+        }
+    }
+
+
+
+    public void exposeZero() {
+    // Expose surrounding cells when a zero cell is exposed
+        int cellRow = cellRowLocation;
+        int cellCol = cellColLocation;
+
+        // Check surrounding cells
+        for (int i=-1; i < 2; i++) {
+            for (int j=-1; j < 2; j++) {
+                int rowIndex = cellRow + i;
+                int colIndex = cellCol + j;
+                // Check in range
+                boolean inRange = rowIndex < game.getGameRows() && colIndex < game.getGameCols() && rowIndex > -1 && colIndex > -1;
+                if (inRange && !isMine){
+                    MineCell adjCell = game.cellGrid[rowIndex][colIndex];
+                    adjCell.exposeCell();
+                }
+            }
+        }
+
+    }
+
+    public void exposeAll() {
+    // Expose all cells
+        int gameRows = game.getGameRows();
+        int gameCols = game.getGameCols();
+
+        for(int row=0; row < gameRows; row++) {
+            for(int col=0; col < gameCols; col++) {
+                MineCell cell = game.cellGrid[row][col];
+                if (!cell.isExposed){
+                    cell.isExposed = true;
+                    cell.exposeCell();
+                }
+            }
+        }
+    }
+
+    public void flagCell() {
+        setIcon(FLAG);
+        isFlagged = true;
+    }
+
+    public void unflagCell() {
+        setIcon(BLANK_TILE);
+        isFlagged = false;
+    }
     private static ImageIcon getScaledImageIcon(ImageIcon image) {
     // Scale ImageIcon to appropriate cell dimensions
         Image img = image.getImage().getScaledInstance(CELL_WIDTH, CELL_WIDTH, Image.SCALE_SMOOTH);

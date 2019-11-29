@@ -16,6 +16,8 @@ public class Minesweeper {
     static final int HARD_MINES = 99;
     static final int HARD_ROWS = 16;
     static final int HARD_COLS = 30;
+    // Level
+    String gameLevel;
 
     // -------------GAME-------------
     Minesweeper game;
@@ -26,9 +28,10 @@ public class Minesweeper {
     private int wrongFlags;
     private int rightFlags;
     private int minesLeft;
+    private boolean gameLost;
     // Grid
     private int[][] numGrid;
-    private MineCell[][] cellGrid;
+    MineCell[][] cellGrid;
 
     // --------------GUI-------------
     // Frames
@@ -57,6 +60,8 @@ public class Minesweeper {
         this.minesLeft = EASY_MINES;
         this.numRows = EASY_ROWS;
         this.numCols = EASY_COLS;
+        gameLevel = "easy";
+        gameLost = false;
         // Flags
         this.numFlags = 0;
         this.rightFlags = 0;
@@ -93,8 +98,8 @@ public class Minesweeper {
                             int setRow = row + i;
                             int setCol = col + j;
                             // Check if cell is a mine or out of range
-                            boolean canIncrement = setRow < numRows && setCol < numCols && setRow > -1 && setCol > -1;
-                            if (canIncrement) {
+                            boolean inRange = setRow < numRows && setCol < numCols && setRow > -1 && setCol > -1;
+                            if (inRange) {
                                 if (numGrid[setRow][setCol] != -1) {
                                     numGrid[setRow][setCol]++;
                                 }
@@ -110,11 +115,37 @@ public class Minesweeper {
         for (int row=0; row < numRows; row++) {
             for (int col=0; col < numRows; col++) {
                 int value = numGrid[row][col]; // Get value
-                MineCell cell = new MineCell(value); // Construct
+                MineCell cell = new MineCell(this, value, row, col); // Construct
                 cellGrid[row][col] = cell; // Assign cell to grid
             }
         }
         printGrid();
+    }
+
+    public int getGameRows() {
+        return numRows;
+    }
+
+    public int getGameCols() {
+        return numCols;
+    }
+
+    public boolean isGameLost() {
+        return gameLost;
+    }
+
+    public void loseGame() {
+        gameLost = true;
+        resetButton.setIcon(MineCell.LOSE_FACE);
+    }
+
+    public void winGame() {
+        resetButton.setIcon(MineCell.WIN_FACE);
+    }
+
+    public void resetGame() {
+        initializeGrid();
+
     }
 
     private void printGrid(){
@@ -161,10 +192,18 @@ public class Minesweeper {
         levelPanel.setPreferredSize(levelPanelDimension);
         levelPanel.setMaximumSize(levelPanel.getPreferredSize());
         levelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        // Button name
+        easyButton.setName("level");
+        mediumButton.setName("level");
+        hardButton.setName("level");
         // Button size
         easyButton.setPreferredSize(levelButtonDimension);
         mediumButton.setPreferredSize(levelButtonDimension);
         hardButton.setPreferredSize(levelButtonDimension);
+        // Button color
+        easyButton.setBackground(Color.LIGHT_GRAY);
+        mediumButton.setBackground(Color.LIGHT_GRAY);
+        hardButton.setBackground(Color.LIGHT_GRAY);
         // Button text
         easyButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
         mediumButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
@@ -183,8 +222,14 @@ public class Minesweeper {
         statusPanel.setPreferredSize(statusPanelDimension);
         statusPanel.setMaximumSize(statusPanel.getPreferredSize());
         statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        // Status
+        // Reset button
         resetButton.setPreferredSize(MineCell.CELL_DIMENSION);
+        resetButton.setIcon(MineCell.SMILEY);
+        resetButton.setName("reset");
+        // Timer
+
+        // Mines left
+
         // Add status to panel
         statusPanel.add(resetButton);
 
@@ -223,6 +268,7 @@ public class Minesweeper {
         gameWindow.setResizable(false);
         gameWindow.setVisible(true);
         gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        System.out.println("-------------------------------");
     }
 
     public static void main(String[] args) {
