@@ -34,40 +34,42 @@ public class Minesweeper {
     // Frames
     private JFrame gameWindow = new JFrame("Minesweeper Copycat - Serena He");
     // Panels
-    private JPanel buttonPanel = new JPanel();
-    private JPanel scorePanel = new JPanel();
+    private JPanel gridPanel = new JPanel();
+    private JPanel statusPanel = new JPanel();
     private JPanel levelPanel = new JPanel();
     private JPanel finalPanel = new JPanel();
     // Layout
-    private GridLayout mineLayout;
+
     // Labels
-    private JLabel timerLabel;
-    private JLabel minesLeftLabel;
+    private JLabel minesLeftLabel = new JLabel();
+    private JLabel timeElapsedLabel = new JLabel();
+
+    // Buttons
+    private JButton easyButton = new JButton("Easy");
+    private JButton mediumButton = new JButton("Medium");
+    private JButton hardButton = new JButton("Hard");
+    private JButton resetButton = new JButton();
 
     public Minesweeper() {
     // Constructor - Minesweeper Game
-        this.game = game;
         // Begin in easy mode
         this.totalMines = EASY_MINES;
         this.minesLeft = EASY_MINES;
         this.numRows = EASY_ROWS;
         this.numCols = EASY_COLS;
+        // Flags
         this.numFlags = 0;
         this.rightFlags = 0;
         this.wrongFlags = 0;
-
         // Init grids
         this.numGrid = new int[numRows][numCols];
         this.cellGrid = new MineCell[numRows][numCols];
         initializeGrid();
-
         // GUI
         startGUI();
     }
 
-    public void initializeGrid() {
-        System.out.println("FUNCTION CALL initializeGrid");
-
+    private void initializeGrid() {
         // Randomly set mines in grid shell
         Random randomNum = new Random();
         int mineCounter = 0;
@@ -115,7 +117,7 @@ public class Minesweeper {
         printGrid();
     }
 
-    public void printGrid(){
+    private void printGrid(){
         System.out.println("-------------------------------");
         for (int row=0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
@@ -126,30 +128,47 @@ public class Minesweeper {
         System.out.println("-------------------------------");
     }
 
-    public void startGUI() {
-        // Dimensions
-        int windowWidth = numCols*50;
-        int windowHeight = numRows*50 + 100;
-        int gridWidth = windowWidth;
-        int gridHeight = numRows*50;
-        int levelsHeight = 50;
-
+    private void startGUI() {
+        // -----DIMENSIONS-----
         // Game window
-        gameWindow.setSize(windowWidth, windowHeight);
+        int windowWidth = numCols*MineCell.CELL_WIDTH;
+        int windowHeight = (numRows+3)*MineCell.CELL_WIDTH;
+        Dimension gameWindowDimension = new Dimension(windowWidth, windowHeight);
+        System.out.println("Window dimensions " + windowWidth + ", " + windowHeight);
+        // Status
+        int statusPanelHeight = MineCell.CELL_WIDTH;
+        Dimension statusPanelDimension = new Dimension(windowWidth, statusPanelHeight);
+        System.out.println("Status dimensions " + windowWidth + ", " + statusPanelHeight);
+        // Cell grid
+        int gridPanelHeight = numRows*MineCell.CELL_WIDTH;
+        Dimension gridPanelDimension = new Dimension(windowWidth, gridPanelHeight);
+        System.out.println("Grid dimensions " + windowWidth + ", " + gridPanelHeight);
+        // Levels
+        int levelButtonWidth = 100;
+        int levelPanelHeight = MineCell.CELL_WIDTH;
+        int levelButtonFontSize = 14;
+        Dimension levelButtonDimension = new Dimension(levelButtonWidth, levelPanelHeight);
+        Dimension levelPanelDimension = new Dimension(windowWidth, levelPanelHeight);
+        System.out.println("Level dimensions " + windowWidth + ", " + levelPanelHeight);
+        System.out.println("Level button dimensions " + levelButtonWidth + ", " + levelPanelHeight);
 
-        // Level Panel
-        Dimension levelButtonDimension = new Dimension((windowWidth)/3, levelsHeight);
-        Button easyButton = new Button("Easy");
-        Button mediumButton = new Button("Medium");
-        Button hardButton = new Button("Hard");
-        // Set level button size
+        // -----GAME WINDOW-----
+        gameWindow.setSize(gameWindowDimension);
+        finalPanel.setSize(gameWindowDimension);
+
+        // -----LEVEL PANEL-----
+        // Panel
+        levelPanel.setPreferredSize(levelPanelDimension);
+        levelPanel.setMaximumSize(levelPanel.getPreferredSize());
+        levelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        // Button size
         easyButton.setPreferredSize(levelButtonDimension);
         mediumButton.setPreferredSize(levelButtonDimension);
         hardButton.setPreferredSize(levelButtonDimension);
-        // Set level button font
-        easyButton.setFont(new Font("Arial", Font.PLAIN, 20));
-        mediumButton.setFont(new Font("Arial", Font.PLAIN, 20));
-        hardButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        // Button text
+        easyButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
+        mediumButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
+        hardButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
         // Add mouseListener to buttons
         easyButton.addMouseListener(new MineMouseHandler(this));
         mediumButton.addMouseListener(new MineMouseHandler(this));
@@ -159,10 +178,51 @@ public class Minesweeper {
         levelPanel.add(mediumButton);
         levelPanel.add(hardButton);
 
-        // Format buttonPanel
-        buttonPanel.setSize(gridWidth, gridHeight);
-        buttonPanel.setLayout(new GridLayout(numRows, numCols));
+        // -----STATUS PANEL-----
+        // Status panel
+        statusPanel.setPreferredSize(statusPanelDimension);
+        statusPanel.setMaximumSize(statusPanel.getPreferredSize());
+        statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        // Status
+        resetButton.setPreferredSize(MineCell.CELL_DIMENSION);
+        // Add status to panel
+        statusPanel.add(resetButton);
 
+        // -----BUTTON PANEL-----
+        // Format
+        gridPanel.setPreferredSize(gridPanelDimension);
+        gridPanel.setMaximumSize(gridPanel.getPreferredSize());
+        gridPanel.setLayout(new GridLayout(numRows, numCols, 0, 0));
+        // Add MineCells
+        for (int row=0; row < numRows; row++) {
+            for (int col=0; col < numCols; col++) {
+                gridPanel.add(cellGrid[row][col]);
+            }
+        }
+
+        // -----START-----
+        finalPanel.add(levelPanel);
+        finalPanel.add(statusPanel);
+        finalPanel.add(gridPanel);
+        finalPanel.setLayout(new BoxLayout(finalPanel, BoxLayout.Y_AXIS));
+
+        gameWindow.setSize(gameWindowDimension);
+        gameWindow.add(finalPanel);
+
+        // Repaint panels and frame
+//        gridPanel.repaint();
+//        statusPanel.repaint();
+//        levelPanel.repaint();
+//        finalPanel.repaint();
+//        gameWindow.repaint();
+
+        // Frame format
+        Dimension windowDim = Toolkit.getDefaultToolkit().getScreenSize();
+        gameWindow.setLocation(windowDim.width/2-gameWindow.getSize().width/2, windowDim.height/2-gameWindow.getSize().height/2);
+        // Open frame
+        gameWindow.setResizable(false);
+        gameWindow.setVisible(true);
+        gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     public static void main(String[] args) {
