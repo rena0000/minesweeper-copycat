@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Random;
 import javax.swing.*;
 
@@ -17,7 +18,10 @@ public class Minesweeper {
     static final int HARD_ROWS = 16;
     static final int HARD_COLS = 30;
     // Level
-    String gameLevel;
+    private int gameLevel;
+    public static int EASY_LEVEL = 1;
+    public static int MEDIUM_LEVEL = 2;
+    public static int HARD_LEVEL = 3;
 
     // -------------GAME-------------
     Minesweeper game;
@@ -25,8 +29,7 @@ public class Minesweeper {
     private int numRows;
     private int numCols;
     private int numFlags;
-    private int wrongFlags;
-    private int rightFlags;
+    private int numOpened;
     private int minesLeft;
     private boolean gameLost;
     // Grid
@@ -34,6 +37,13 @@ public class Minesweeper {
     MineCell[][] cellGrid;
 
     // --------------GUI-------------
+    // Dimensions
+    private static Dimension SCREEN_DIM = Toolkit.getDefaultToolkit().getScreenSize();
+    private Dimension gameWindowDimension = new Dimension();
+    private Dimension statusPanelDimension = new Dimension();
+    private Dimension levelButtonDimension = new Dimension();
+    private Dimension levelPanelDimension = new Dimension();
+    private Dimension gridPanelDimension = new Dimension();
     // Frames
     private JFrame gameWindow = new JFrame("Minesweeper Copycat - Serena He");
     // Panels
@@ -41,13 +51,14 @@ public class Minesweeper {
     private JPanel statusPanel = new JPanel();
     private JPanel levelPanel = new JPanel();
     private JPanel finalPanel = new JPanel();
-    // Layout
 
     // Labels
     private JLabel minesLeftLabel = new JLabel();
     private JLabel timeElapsedLabel = new JLabel();
 
     // Buttons
+    private static int LEVEL_BUTTON_FONT = 14;
+    private static int LEVEL_BUTTON_WIDTH = 100;
     private JButton easyButton = new JButton("Easy");
     private JButton mediumButton = new JButton("Medium");
     private JButton hardButton = new JButton("Hard");
@@ -60,18 +71,49 @@ public class Minesweeper {
         this.minesLeft = EASY_MINES;
         this.numRows = EASY_ROWS;
         this.numCols = EASY_COLS;
-        gameLevel = "easy";
-        gameLost = false;
         // Flags
-        this.numFlags = 0;
-        this.rightFlags = 0;
-        this.wrongFlags = 0;
+        gameLevel = EASY_LEVEL;
+        gameLost = false;
+        numFlags = 0;
+        numOpened = 0;
         // Init grids
         this.numGrid = new int[numRows][numCols];
         this.cellGrid = new MineCell[numRows][numCols];
+
+        // -----LEVEL BUTTONS-----
+        // Button name
+        easyButton.setName("level");
+        mediumButton.setName("level");
+        hardButton.setName("level");
+        // Button text
+        easyButton.setFont(new Font("Arial", Font.PLAIN, LEVEL_BUTTON_FONT));
+        mediumButton.setFont(new Font("Arial", Font.PLAIN, LEVEL_BUTTON_FONT));
+        hardButton.setFont(new Font("Arial", Font.PLAIN, LEVEL_BUTTON_FONT));
+        // Button color
+        easyButton.setBackground(Color.GRAY); // Current selected
+        mediumButton.setBackground(Color.LIGHT_GRAY);
+        hardButton.setBackground(Color.LIGHT_GRAY);
+
+        // -----ADD MOUSELISTENER-----
+        easyButton.addMouseListener(new MineMouseHandler(this));
+        mediumButton.addMouseListener(new MineMouseHandler(this));
+        hardButton.addMouseListener(new MineMouseHandler(this));
+        resetButton.addMouseListener(new MineMouseHandler(this));
+
+        // Begin
         initializeGrid();
-        // GUI
         startGUI();
+    }
+
+    private void setDimensions() {
+        // Game window
+        int windowWidth = numCols*MineCell.CELL_WIDTH;
+        int windowHeight = (numRows+3)*MineCell.CELL_WIDTH;
+        gameWindowDimension.setSize(windowWidth, windowHeight);
+        statusPanelDimension.setSize(windowWidth, MineCell.CELL_WIDTH);
+        gridPanelDimension.setSize(windowWidth, numRows*MineCell.CELL_WIDTH);
+        levelButtonDimension.setSize(LEVEL_BUTTON_WIDTH, MineCell.CELL_WIDTH);
+        levelPanelDimension.setSize(windowWidth, MineCell.CELL_WIDTH);
     }
 
     private void initializeGrid() {
@@ -113,13 +155,17 @@ public class Minesweeper {
 
         // Create MineCells for each value in grid
         for (int row=0; row < numRows; row++) {
-            for (int col=0; col < numRows; col++) {
+            for (int col=0; col < numCols; col++) {
                 int value = numGrid[row][col]; // Get value
-                MineCell cell = new MineCell(this, value, row, col); // Construct
+                MineCell cell = new MineCell(this, value, row, col);
                 cellGrid[row][col] = cell; // Assign cell to grid
             }
         }
         printGrid();
+    }
+
+    public int getGameLevel() {
+        return gameLevel;
     }
 
     public int getGameRows() {
@@ -134,6 +180,18 @@ public class Minesweeper {
         return gameLost;
     }
 
+    public void incrementFlags() {
+        numFlags++;
+    }
+
+    public void decrementFlags() {
+        numFlags--;
+    }
+
+    public void incrementOpened() {
+        numOpened++;
+    }
+
     public void loseGame() {
         gameLost = true;
         resetButton.setIcon(MineCell.LOSE_FACE);
@@ -144,8 +202,58 @@ public class Minesweeper {
     }
 
     public void resetGame() {
-        initializeGrid();
+        System.out.println("-------RESET-------");
+        // Re-init grids
+        numGrid = new int[numRows][numCols];
+        cellGrid = new MineCell[numRows][numCols];
+        gridPanel.removeAll();
+        // Reset dimensions
+        setDimensions();
+        // Reset game values
+        gameLost = false;
+        minesLeft = totalMines;
+        numFlags = 0;
 
+        initializeGrid();
+        updateGUI();
+    }
+
+    public void changeLevel(int level) {
+        if (level == EASY_LEVEL) {
+            System.out.println("-------EASY-------");
+            totalMines = EASY_MINES;
+            numRows = EASY_ROWS;
+            numCols = EASY_COLS;
+            gameLevel = EASY_LEVEL;
+            // Recolour
+            easyButton.setBackground(Color.GRAY); // Current selected
+            mediumButton.setBackground(Color.LIGHT_GRAY);
+            hardButton.setBackground(Color.LIGHT_GRAY);
+        }
+        else if (level == MEDIUM_LEVEL) {
+            System.out.println("-------MED-------");
+            totalMines = MED_MINES;
+            numRows = MED_ROWS;
+            numCols = MED_ROWS;
+            gameLevel = MEDIUM_LEVEL;
+            // Recolour
+            easyButton.setBackground(Color.LIGHT_GRAY);
+            mediumButton.setBackground(Color.GRAY); // Current selected
+            hardButton.setBackground(Color.LIGHT_GRAY);
+        }
+        else {
+            System.out.println("-------HARD-------");
+            totalMines = HARD_MINES;
+            numRows = HARD_ROWS;
+            numCols = HARD_COLS;
+            gameLevel = HARD_LEVEL;
+            // Recolour
+            easyButton.setBackground(Color.LIGHT_GRAY);
+            mediumButton.setBackground(Color.LIGHT_GRAY);
+            hardButton.setBackground(Color.GRAY); // Current selected
+        }
+        // RESET
+        resetGame();
     }
 
     private void printGrid(){
@@ -156,33 +264,25 @@ public class Minesweeper {
             }
             System.out.println("");
         }
-        System.out.println("-------------------------------");
     }
 
     private void startGUI() {
-        // -----DIMENSIONS-----
-        // Game window
-        int windowWidth = numCols*MineCell.CELL_WIDTH;
-        int windowHeight = (numRows+3)*MineCell.CELL_WIDTH;
-        Dimension gameWindowDimension = new Dimension(windowWidth, windowHeight);
-        System.out.println("Window dimensions " + windowWidth + ", " + windowHeight);
-        // Status
-        int statusPanelHeight = MineCell.CELL_WIDTH;
-        Dimension statusPanelDimension = new Dimension(windowWidth, statusPanelHeight);
-        System.out.println("Status dimensions " + windowWidth + ", " + statusPanelHeight);
-        // Cell grid
-        int gridPanelHeight = numRows*MineCell.CELL_WIDTH;
-        Dimension gridPanelDimension = new Dimension(windowWidth, gridPanelHeight);
-        System.out.println("Grid dimensions " + windowWidth + ", " + gridPanelHeight);
-        // Levels
-        int levelButtonWidth = 100;
-        int levelPanelHeight = MineCell.CELL_WIDTH;
-        int levelButtonFontSize = 14;
-        Dimension levelButtonDimension = new Dimension(levelButtonWidth, levelPanelHeight);
-        Dimension levelPanelDimension = new Dimension(windowWidth, levelPanelHeight);
-        System.out.println("Level dimensions " + windowWidth + ", " + levelPanelHeight);
-        System.out.println("Level button dimensions " + levelButtonWidth + ", " + levelPanelHeight);
+        // Layouts
+        levelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        // Update
+        updateGUI();
+        // Frame format
+        gameWindow.setLocation(SCREEN_DIM.width/2-gameWindow.getSize().width/2, SCREEN_DIM.height/2-gameWindow.getSize().height/2);
+        // Open frame
+        gameWindow.setResizable(false);
+        gameWindow.setVisible(true);
+        gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
 
+    private void updateGUI() {
+        //gameWindow.setVisible(false);
+        setDimensions();
         // -----GAME WINDOW-----
         gameWindow.setSize(gameWindowDimension);
         finalPanel.setSize(gameWindowDimension);
@@ -191,27 +291,10 @@ public class Minesweeper {
         // Panel
         levelPanel.setPreferredSize(levelPanelDimension);
         levelPanel.setMaximumSize(levelPanel.getPreferredSize());
-        levelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        // Button name
-        easyButton.setName("level");
-        mediumButton.setName("level");
-        hardButton.setName("level");
         // Button size
         easyButton.setPreferredSize(levelButtonDimension);
         mediumButton.setPreferredSize(levelButtonDimension);
         hardButton.setPreferredSize(levelButtonDimension);
-        // Button color
-        easyButton.setBackground(Color.LIGHT_GRAY);
-        mediumButton.setBackground(Color.LIGHT_GRAY);
-        hardButton.setBackground(Color.LIGHT_GRAY);
-        // Button text
-        easyButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
-        mediumButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
-        hardButton.setFont(new Font("Arial", Font.PLAIN, levelButtonFontSize));
-        // Add mouseListener to buttons
-        easyButton.addMouseListener(new MineMouseHandler(this));
-        mediumButton.addMouseListener(new MineMouseHandler(this));
-        hardButton.addMouseListener(new MineMouseHandler(this));
         // Add button to levelPanel
         levelPanel.add(easyButton);
         levelPanel.add(mediumButton);
@@ -221,20 +304,20 @@ public class Minesweeper {
         // Status panel
         statusPanel.setPreferredSize(statusPanelDimension);
         statusPanel.setMaximumSize(statusPanel.getPreferredSize());
-        statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
         // Reset button
         resetButton.setPreferredSize(MineCell.CELL_DIMENSION);
         resetButton.setIcon(MineCell.SMILEY);
         resetButton.setName("reset");
         // Timer
-
+        timeElapsedLabel.setText("00:00");
         // Mines left
-
+        minesLeftLabel.setText(Integer.toString(minesLeft));
         // Add status to panel
         statusPanel.add(resetButton);
 
         // -----BUTTON PANEL-----
         // Format
+        System.out.println("Grid: " + gridPanelDimension);
         gridPanel.setPreferredSize(gridPanelDimension);
         gridPanel.setMaximumSize(gridPanel.getPreferredSize());
         gridPanel.setLayout(new GridLayout(numRows, numCols, 0, 0));
@@ -260,15 +343,8 @@ public class Minesweeper {
 //        levelPanel.repaint();
 //        finalPanel.repaint();
 //        gameWindow.repaint();
-
-        // Frame format
-        Dimension windowDim = Toolkit.getDefaultToolkit().getScreenSize();
-        gameWindow.setLocation(windowDim.width/2-gameWindow.getSize().width/2, windowDim.height/2-gameWindow.getSize().height/2);
-        // Open frame
-        gameWindow.setResizable(false);
         gameWindow.setVisible(true);
-        gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        System.out.println("-------------------------------");
+
     }
 
     public static void main(String[] args) {

@@ -20,43 +20,33 @@ public class MineMouseHandler implements MouseListener{
         Object ob = e.getSource();
         JButton button = (JButton) ob;
 
+        boolean leftPressed = SwingUtilities.isLeftMouseButton(e);
+        boolean rightPressed = SwingUtilities.isRightMouseButton(e);
+        boolean isChord = leftPressed && rightPressed;
+
         // -----LEVEL-----
-        if (button.getName() == "level" && SwingUtilities.isLeftMouseButton(e)) {
-            String currentLevel = game.gameLevel;
-            // Change easy
-            if (button.getText() == "easy" && currentLevel != "easy") {
+        if (button.getName() == "level" && leftPressed) {
 
-            }
-            // Change medium
-            else if (button.getText() == "med" && currentLevel != "med") {
-
-            }
-            // Change hard
-            else if (currentLevel != "hard") {
-
-            }
         }
         // -----RESET-----
-        else if (button.getName() == "reset" && SwingUtilities.isLeftMouseButton(e)) {
+        else if (button.getName() == "reset" && rightPressed) {
 
         }
         // -----MINE CELL-----
         else {
             MineCell cell = (MineCell) button;
             // Chord
-            if (SwingUtilities.isLeftMouseButton(e) && SwingUtilities.isRightMouseButton(e)) {
-                if (cell.checkIsExposed()) {
-                    cell.exposeZero();
+            if (isChord) {
+                System.out.println("chord");
+                if (cell.getIsExposed()) {
+                    cell.cellChorded();
                 }
             }
-            // Left click - expose
-            else if (SwingUtilities.isLeftMouseButton(e)) {
-                cell.exposeCell();
-            }
             // Right click - flag
-            else if (SwingUtilities.isRightMouseButton(e)) {
-                if(!cell.checkIsExposed()) {
-                    if(cell.checkIsFlagged()) {
+            else if (rightPressed) {
+                System.out.println("right click");
+                if(!cell.getIsExposed()) {
+                    if(cell.getIsFlagged()) {
                         cell.unflagCell();
                     }
                     else {
@@ -64,11 +54,46 @@ public class MineMouseHandler implements MouseListener{
                     }
                 }
             }
+            // Left click - expose
+            else if (leftPressed) {
+                cell.cellLeftClicked();
+            }
+            else {
+
+            }
         }
     }
+
     @Override
     public void mouseClicked(MouseEvent e) {
+        Object ob = e.getSource();
+        JButton button = (JButton) ob;
 
+        // -----LEVEL-----
+        if (button.getName() == "level" && SwingUtilities.isLeftMouseButton(e)) {
+            int currentLevel = game.getGameLevel();
+
+            // Change easy
+            if (button.getText() == "Easy" && currentLevel != Minesweeper.EASY_LEVEL) {
+                game.changeLevel(Minesweeper.EASY_LEVEL);
+            }
+            // Change medium
+            else if (button.getText() == "Medium" && currentLevel != Minesweeper.MEDIUM_LEVEL) {
+                game.changeLevel(Minesweeper.MEDIUM_LEVEL);
+            }
+            // Change hard
+            else if (button.getText() == "Hard" && currentLevel != Minesweeper.HARD_LEVEL) {
+                game.changeLevel(Minesweeper.HARD_LEVEL);
+            }
+        }
+        // -----RESET-----
+        else if (button.getName() == "reset" && SwingUtilities.isLeftMouseButton(e)) {
+            System.out.println("Reset clicked");
+            game.resetGame();
+        }
+        else {
+
+        }
     }
 
     @Override

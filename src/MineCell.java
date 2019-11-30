@@ -63,44 +63,12 @@ public class MineCell extends JButton {
         isExposed = false;
         isFlagged = false;
         isMine = (cellValue == -1);
-        // JButton properties
-        assignImage();
+        // Set blank
+        setIcon(BLANK_TILE);
         // setText(String.valueOf(cellValue));
         setSize(CELL_DIMENSION);
         // Mouse listener
         this.addMouseListener(new MineMouseHandler(this));
-    }
-
-    private void assignImage() {
-        // Opened
-        if (isExposed) {
-            // Mine
-            if (isMine) {
-                setIcon(MINE);
-            }
-            else {
-                // Zero
-                if (cellValue == 0) {
-                    setIcon(null);
-                    setBackground((Color.LIGHT_GRAY));
-                }
-                // Numbered
-                else {
-                    setIcon(NUMBER_ICONS[cellValue]);
-                }
-            }
-        }
-        // Unopened
-        else {
-            // Flag
-            if (isFlagged) {
-                setIcon(FLAG);
-            }
-            // Blank
-            else {
-                setIcon(BLANK_TILE);
-            }
-        }
     }
 
     public int getCellRow() {
@@ -111,34 +79,53 @@ public class MineCell extends JButton {
         return cellColLocation;
     }
 
-    public boolean checkIsExposed() {
+    public boolean getIsExposed() {
         return isExposed;
     }
 
-    public boolean checkIsFlagged() {
+    public boolean getIsFlagged() {
         return isFlagged;
     }
 
     public void exposeCell() {
     // Make cell value visible
-        if (!isExposed) {
-            isExposed = true;
+        isExposed = true;
+        // Mine
+        if (isMine) {
+            setIcon(MINE);
+        }
+        else {
+            // Zero
+            if (cellValue == 0) {
+                setIcon(null);
+                setBackground((Color.LIGHT_GRAY));
+            }
+            // Numbered
+            else {
+                setIcon(NUMBER_ICONS[cellValue]);
+            }
+        }
+    }
+
+    public void cellLeftClicked() {
+        if (!isExposed && !isFlagged) {
+            exposeCell();
             // Check if game lost
-            if (isMine) {
+            if (isMine && !game.isGameLost()) {
                 game.loseGame();
                 setIcon(BAD_MINE);
                 exposeAll();
             }
             // Expose more if cell is zero
-            else {
-                assignImage();
-                if (cellValue == 0) {
-                    exposeZero();
-                }
+            else if (cellValue == 0) {
+                exposeZero();
             }
         }
     }
 
+    public void cellChorded() {
+        exposeZero();
+    }
 
 
     public void exposeZero() {
@@ -155,11 +142,16 @@ public class MineCell extends JButton {
                 boolean inRange = rowIndex < game.getGameRows() && colIndex < game.getGameCols() && rowIndex > -1 && colIndex > -1;
                 if (inRange && !isMine){
                     MineCell adjCell = game.cellGrid[rowIndex][colIndex];
-                    adjCell.exposeCell();
+                    // If adjacent cell also zero, expose recursively
+                    if (!adjCell.isExposed && !adjCell.isFlagged) {
+                        adjCell.exposeCell();
+                        if (adjCell.cellValue == 0) {
+                            adjCell.exposeZero();
+                        }
+                    }
                 }
             }
         }
-
     }
 
     public void exposeAll() {
@@ -171,7 +163,6 @@ public class MineCell extends JButton {
             for(int col=0; col < gameCols; col++) {
                 MineCell cell = game.cellGrid[row][col];
                 if (!cell.isExposed){
-                    cell.isExposed = true;
                     cell.exposeCell();
                 }
             }
@@ -181,11 +172,13 @@ public class MineCell extends JButton {
     public void flagCell() {
         setIcon(FLAG);
         isFlagged = true;
+        game.incrementFlags();
     }
 
     public void unflagCell() {
         setIcon(BLANK_TILE);
         isFlagged = false;
+        game.decrementFlags();
     }
     private static ImageIcon getScaledImageIcon(ImageIcon image) {
     // Scale ImageIcon to appropriate cell dimensions
