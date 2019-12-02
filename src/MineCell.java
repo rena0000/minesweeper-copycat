@@ -51,6 +51,7 @@ public class MineCell extends JButton {
     private boolean isMine;
     private boolean isExposed;
     private boolean isFlagged;
+    private ImageIcon exposedImage;
 
 
     public MineCell(Minesweeper game, int cellValue, int cellRowLocation, int cellColLocation) {
@@ -69,52 +70,49 @@ public class MineCell extends JButton {
         setSize(CELL_DIMENSION);
         // Mouse listener
         this.addMouseListener(new MineMouseHandler(this));
-    }
-
-    public int getCellRow() {
-        return cellRowLocation;
-    }
-
-    public int getCellCol() {
-        return cellColLocation;
-    }
-
-    public boolean getIsExposed() {
-        return isExposed;
-    }
-
-    public boolean getIsFlagged() {
-        return isFlagged;
-    }
-
-    public void exposeCell() {
-    // Make cell value visible
-        isExposed = true;
-        // Mine
+        // Set actual image
         if (isMine) {
-            setIcon(MINE);
+            exposedImage = MINE;
         }
         else {
             // Zero
             if (cellValue == 0) {
-                setIcon(null);
-                setBackground((Color.LIGHT_GRAY));
+                exposedImage = null;
             }
             // Numbered
             else {
-                setIcon(NUMBER_ICONS[cellValue]);
+                exposedImage = NUMBER_ICONS[cellValue];
             }
         }
     }
 
-    public void cellLeftClicked() {
+    // ----------GETTER/SETTERS---------
+
+    int getCellRow() {
+        return cellRowLocation;
+    }
+
+    int getCellCol() {
+        return cellColLocation;
+    }
+
+    boolean getIsExposed() {
+        return isExposed;
+    }
+
+    boolean getIsFlagged() {
+        return isFlagged;
+    }
+
+    // ----------MOUSE EVENTS---------s
+
+    void cellLeftClicked() {
         if (!isExposed && !isFlagged) {
             exposeCell();
             // Check if game lost
             if (isMine && !game.isGameLost()) {
                 game.loseGame();
                 setIcon(BAD_MINE);
-                exposeAll();
             }
             // Expose more if cell is zero
             else if (cellValue == 0) {
@@ -123,59 +121,118 @@ public class MineCell extends JButton {
         }
     }
 
-    public void cellChorded() {
+    void cellChorded() {
         exposeZero();
     }
 
+    // ----------EXPOSE---------
 
-    public void exposeZero() {
-    // Expose surrounding cells when a zero cell is exposed
+    private void exposeZero() {
+    // Expose surrounding cells including when a zero cell is exposed
         int cellRow = cellRowLocation;
         int cellCol = cellColLocation;
 
-        // Check surrounding cells
-        for (int i=-1; i < 2; i++) {
-            for (int j=-1; j < 2; j++) {
-                int rowIndex = cellRow + i;
-                int colIndex = cellCol + j;
-                // Check in range
-                boolean inRange = rowIndex < game.getGameRows() && colIndex < game.getGameCols() && rowIndex > -1 && colIndex > -1;
-                if (inRange && !isMine){
-                    MineCell adjCell = game.cellGrid[rowIndex][colIndex];
-                    // If adjacent cell also zero, expose recursively
-                    if (!adjCell.isExposed && !adjCell.isFlagged) {
-                        adjCell.exposeCell();
-                        if (adjCell.cellValue == 0) {
-                            adjCell.exposeZero();
+        if(isFlaggedFully()) {
+            if(isFlaggedCorrectly()) {
+                // Open surrounding cells
+                for (int i = -1; i < 2; i++) {
+                    for (int j = -1; j < 2; j++) {
+                        int rowIndex = cellRow + i;
+                        int colIndex = cellCol + j;
+                        // Check in range
+                        boolean inRange = rowIndex < game.getGameRows() && colIndex < game.getGameCols() && rowIndex > -1 && colIndex > -1;
+                        if (inRange) {
+                            MineCell adjCell = game.cellGrid[rowIndex][colIndex];
+                            // If adjacent cell also zero, expose recursively
+                            if (!adjCell.isExposed && !adjCell.isFlagged && !adjCell.isMine) {
+                                adjCell.exposeCell();
+                                if (adjCell.cellValue == 0) {
+                                    adjCell.exposeZero();
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-
-    public void exposeAll() {
-    // Expose all cells
-        int gameRows = game.getGameRows();
-        int gameCols = game.getGameCols();
-
-        for(int row=0; row < gameRows; row++) {
-            for(int col=0; col < gameCols; col++) {
-                MineCell cell = game.cellGrid[row][col];
-                if (!cell.isExposed){
-                    cell.exposeCell();
-                }
+            else {
+                game.loseGame();
             }
         }
     }
 
-    public void flagCell() {
+    void exposeCell() {
+        // Make cell value visible
+        isExposed = true;
+        game.incrementOpened();
+        // Set image
+        if (exposedImage == null) {
+            setIcon(null);
+            setBackground(Color.LIGHT_GRAY);
+        }
+        else {
+            setIcon(exposedImage);
+        }
+    }
+
+    // ----------FLAGS---------
+
+    private boolean isFlaggedCorrectly() {
+        // Check if all surrounding mines are flagged correctly
+        int cellRow = cellRowLocation;
+        int cellCol = cellColLocation;
+        int correctFlags = 0;
+
+        // Check surrounding cells
+        for (int i=-1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                int rowIndex = cellRow + i;
+                int colIndex = cellCol + j;
+                // Check in range
+                boolean inRange = rowIndex < game.getGameRows() && colIndex < game.getGameCols() && rowIndex > -1 && colIndex > -1;
+                if (inRange) {
+                    MineCell adjCell = game.cellGrid[rowIndex][colIndex];
+                    // If adjacent cell also zero, expose recursively
+                    if (adjCell.isMine && adjCell.isFlagged) {
+                        correctFlags++;
+                    }
+                }
+            }
+        }
+        return (correctFlags == cellValue);
+    }
+
+    private boolean isFlaggedFully() {
+        // Check if cell's surrounding flags are equal or greater than the correct number
+        int cellRow = cellRowLocation;
+        int cellCol = cellColLocation;
+        int numFlags = 0;
+
+        // Check surrounding cells
+        for (int i=-1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                int rowIndex = cellRow + i;
+                int colIndex = cellCol + j;
+                // Check in range
+                boolean inRange = rowIndex < game.getGameRows() && colIndex < game.getGameCols() && rowIndex > -1 && colIndex > -1;
+                if (inRange) {
+                    MineCell adjCell = game.cellGrid[rowIndex][colIndex];
+                    // If adjacent cell also zero, expose recursively
+                    if (adjCell.isFlagged) {
+                        numFlags++;
+                    }
+                }
+            }
+        }
+        return (numFlags >= cellValue);
+    }
+
+    void flagCell() {
         setIcon(FLAG);
         isFlagged = true;
         game.incrementFlags();
     }
 
-    public void unflagCell() {
+    void unflagCell() {
         setIcon(BLANK_TILE);
         isFlagged = false;
         game.decrementFlags();

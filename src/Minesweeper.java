@@ -164,44 +164,57 @@ public class Minesweeper {
         printGrid();
     }
 
-    public int getGameLevel() {
+    int getGameLevel() {
         return gameLevel;
     }
 
-    public int getGameRows() {
+    int getGameRows() {
         return numRows;
     }
 
-    public int getGameCols() {
+    int getGameCols() {
         return numCols;
     }
 
-    public boolean isGameLost() {
+    boolean isGameLost() {
         return gameLost;
     }
 
-    public void incrementFlags() {
+    void incrementFlags() {
         numFlags++;
     }
 
-    public void decrementFlags() {
+    void decrementFlags() {
         numFlags--;
     }
 
-    public void incrementOpened() {
+    void incrementOpened() {
         numOpened++;
     }
 
-    public void loseGame() {
+    void loseGame() {
         gameLost = true;
+        exposeAll();
         resetButton.setIcon(MineCell.LOSE_FACE);
     }
 
-    public void winGame() {
+    void exposeAll() {
+        // Expose all cells
+        for(int row=0; row < numRows; row++) {
+            for(int col=0; col < numCols; col++) {
+                MineCell cell = cellGrid[row][col];
+                if (!cell.getIsExposed()){
+                    cell.exposeCell();
+                }
+            }
+        }
+    }
+
+    void winGame() {
         resetButton.setIcon(MineCell.WIN_FACE);
     }
 
-    public void resetGame() {
+    void resetGame() {
         System.out.println("-------RESET-------");
         // Re-init grids
         numGrid = new int[numRows][numCols];

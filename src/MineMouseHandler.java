@@ -24,27 +24,17 @@ public class MineMouseHandler implements MouseListener{
         boolean rightPressed = SwingUtilities.isRightMouseButton(e);
         boolean isChord = leftPressed && rightPressed;
 
-        // -----LEVEL-----
-        if (button.getName() == "level" && leftPressed) {
-
-        }
-        // -----RESET-----
-        else if (button.getName() == "reset" && rightPressed) {
-
-        }
-        // -----MINE CELL-----
-        else {
+        // MineCell only
+        if (button.getName() == null){
             MineCell cell = (MineCell) button;
             // Chord
             if (isChord) {
-                System.out.println("chord");
                 if (cell.getIsExposed()) {
                     cell.cellChorded();
                 }
             }
             // Right click - flag
             else if (rightPressed) {
-                System.out.println("right click");
                 if(!cell.getIsExposed()) {
                     if(cell.getIsFlagged()) {
                         cell.unflagCell();
