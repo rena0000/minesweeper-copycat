@@ -1,3 +1,10 @@
+/**
+ * MINESWEEPER MOUSE CLASS
+ * @author Serena He
+ * ----------------------------------------------------------------------------------
+ * Implementing the MouseListener class for the Minesweeper game
+*/
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.*;
@@ -24,11 +31,12 @@ public class MineMouseHandler implements MouseListener{
         boolean rightPressed = SwingUtilities.isRightMouseButton(e);
         boolean isChord = leftPressed && rightPressed;
 
-        // MineCell only
+        // -----MINECELL-----
         if (button.getName() == null){
             MineCell cell = (MineCell) button;
             // Chord
             if (isChord) {
+                System.out.println("**Chord**");
                 if (cell.getIsExposed()) {
                     cell.cellChorded();
                 }
@@ -59,8 +67,10 @@ public class MineMouseHandler implements MouseListener{
         Object ob = e.getSource();
         JButton button = (JButton) ob;
 
+        boolean leftClicked = SwingUtilities.isLeftMouseButton(e);
+
         // -----LEVEL-----
-        if (button.getName() == "level" && SwingUtilities.isLeftMouseButton(e)) {
+        if (button.getName() == "level" && leftClicked) {
             int currentLevel = game.getGameLevel();
 
             // Change easy
@@ -77,8 +87,7 @@ public class MineMouseHandler implements MouseListener{
             }
         }
         // -----RESET-----
-        else if (button.getName() == "reset" && SwingUtilities.isLeftMouseButton(e)) {
-            System.out.println("Reset clicked");
+        else if (button.getName() == "reset" && leftClicked) {
             game.resetGame();
         }
         else {

@@ -1,5 +1,12 @@
+/**
+ * MINESWEEPER GAME CLASS
+ * @author Serena He
+ * ----------------------------------------------------------------------------------
+ * Main class for Minesweeper-Copycat.
+ * Begins a Minesweeper game in easy mode
+*/
+
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Random;
 import javax.swing.*;
 
@@ -32,6 +39,8 @@ public class Minesweeper {
     private int numOpened;
     private int minesLeft;
     private boolean gameLost;
+    private Timer gameTimer;
+    private boolean gameStart;
     // Grid
     private int[][] numGrid;
     MineCell[][] cellGrid;
@@ -79,20 +88,34 @@ public class Minesweeper {
         // Init grids
         this.numGrid = new int[numRows][numCols];
         this.cellGrid = new MineCell[numRows][numCols];
+        // Timer
+        gameStart = false;
 
         // -----LEVEL BUTTONS-----
-        // Button name
+        // Name
         easyButton.setName("level");
         mediumButton.setName("level");
         hardButton.setName("level");
-        // Button text
+        // Text
         easyButton.setFont(new Font("Arial", Font.PLAIN, LEVEL_BUTTON_FONT));
         mediumButton.setFont(new Font("Arial", Font.PLAIN, LEVEL_BUTTON_FONT));
         hardButton.setFont(new Font("Arial", Font.PLAIN, LEVEL_BUTTON_FONT));
-        // Button color
+        // Colour
         easyButton.setBackground(Color.GRAY); // Current selected
         mediumButton.setBackground(Color.LIGHT_GRAY);
         hardButton.setBackground(Color.LIGHT_GRAY);
+
+        // -----STATUS LABELS-----
+        // Background colour
+        minesLeftLabel.setBackground(Color.BLACK);
+        timeElapsedLabel.setBackground(Color.BLACK);
+        // Alignment
+        minesLeftLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        minesLeftLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+        timeElapsedLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+        timeElapsedLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        // Text
+        minesLeftLabel.setText(Integer.toString(minesLeft));
 
         // -----ADD MOUSELISTENER-----
         easyButton.addMouseListener(new MineMouseHandler(this));
@@ -103,6 +126,134 @@ public class Minesweeper {
         // Begin
         initializeGrid();
         startGUI();
+    }
+
+
+    // ----------GETTER/SETTERS---------
+
+    int getGameLevel() {
+        /**
+         * Gets the current game level
+         * @return int Number corresponding to a game level (1-EASY, 2-MEDIUM, 3-HARD)
+         */
+        return gameLevel;
+    }
+
+    int getGameRows() {
+        /**
+         * Gets the number of rows in the current game
+         * @return int Number of rows
+         */
+        return numRows;
+    }
+
+    int getGameCols() {
+        /**
+         * Gets the number of columns in the current game
+         * @return int Number of columns
+         */
+        return numCols;
+    }
+
+    boolean isGameLost() {
+        /**
+         * Returns the loss state of the game (eg. True if game has been lost).
+         * @return boolean Whether or not the game is lost
+         */
+        return gameLost;
+    }
+
+    boolean getGameStart() {
+        return gameStart;
+    }
+
+    void setGameStart(boolean started) {
+        gameStart = started;
+    }
+
+    // ----------COUNTERS---------
+
+    void incrementFlags() {
+        /**
+         * Increments the numFlags attribute of the Minesweeper class
+         * @return Nothing.
+         */
+        numFlags++;
+    }
+
+    void decrementFlags() {
+        /**
+         * Decrements the numFlags attribute of the Minesweeper class
+         * @return Nothing.
+         */
+
+        numFlags--;
+    }
+
+    void incrementOpened() {
+        /**
+         * Increments the numOpened attribute (number of cells opened) of the Minesweeper class
+         * @return Nothing.
+         */
+        numOpened++;
+    }
+
+    // ----------GAME WIN/LOSS---------
+
+    void loseGame() {
+        /**
+         * Called when the game has been lost. Exposes all cells on the grid with mines appearing as mines, and sets a custom face on the reset button.
+         * @return Nothing.
+         */
+        gameLost = true;
+        exposeAll();
+        resetButton.setIcon(MineCell.LOSE_FACE);
+    }
+
+    void winGame() {
+        /**
+         * Called when the game has been won. Exposes all cells on the grid with mines appearing as flags, and sets a custom face on the reset button.
+         * @return Nothing.
+         */
+        resetButton.setIcon(MineCell.WIN_FACE);
+        exposeAll();
+    }
+
+    void checkWin() {
+        /**
+         * Checks if the current game status satisfies the win condition. Win condition is if the number of non-mines equals the number of opened cells.
+         * @return Nothing.
+         */
+        int numSafeCells = numRows*numCols - totalMines;
+        if (numSafeCells == numOpened) {
+            winGame();
+        }
+    }
+
+    void exposeAll() {
+        /**
+         * Expose all cells on the grid. Sets mines as flags if game was won, and mines as mines if game was lost.
+         * @return Nothing.
+         */
+        for(int row=0; row < numRows; row++) {
+            for(int col=0; col < numCols; col++) {
+                MineCell cell = cellGrid[row][col];
+                if (!cell.getIsExposed()){
+                    // Set mine as flag if game was won
+                    if (cell.getIsMine() && !gameLost) {
+                        cell.setMineOnWin();
+                    }
+                    cell.exposeCell();
+                }
+            }
+        }
+    }
+
+
+    // ----------GAME GUI/RESET---------
+
+    private void updateMinesLeftLabel() {
+        minesLeftLabel.setText(Integer.toString(minesLeft));
     }
 
     private void setDimensions() {
@@ -164,54 +315,14 @@ public class Minesweeper {
         printGrid();
     }
 
-    int getGameLevel() {
-        return gameLevel;
-    }
-
-    int getGameRows() {
-        return numRows;
-    }
-
-    int getGameCols() {
-        return numCols;
-    }
-
-    boolean isGameLost() {
-        return gameLost;
-    }
-
-    void incrementFlags() {
-        numFlags++;
-    }
-
-    void decrementFlags() {
-        numFlags--;
-    }
-
-    void incrementOpened() {
-        numOpened++;
-    }
-
-    void loseGame() {
-        gameLost = true;
-        exposeAll();
-        resetButton.setIcon(MineCell.LOSE_FACE);
-    }
-
-    void exposeAll() {
-        // Expose all cells
-        for(int row=0; row < numRows; row++) {
-            for(int col=0; col < numCols; col++) {
-                MineCell cell = cellGrid[row][col];
-                if (!cell.getIsExposed()){
-                    cell.exposeCell();
-                }
+    private void printGrid(){
+        System.out.println("-------------------------------");
+        for (int row=0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                System.out.print("|" + numGrid[row][col]);
             }
+            System.out.println("");
         }
-    }
-
-    void winGame() {
-        resetButton.setIcon(MineCell.WIN_FACE);
     }
 
     void resetGame() {
@@ -226,6 +337,7 @@ public class Minesweeper {
         gameLost = false;
         minesLeft = totalMines;
         numFlags = 0;
+        numOpened = 0;
 
         initializeGrid();
         updateGUI();
@@ -247,7 +359,7 @@ public class Minesweeper {
             System.out.println("-------MED-------");
             totalMines = MED_MINES;
             numRows = MED_ROWS;
-            numCols = MED_ROWS;
+            numCols = MED_COLS;
             gameLevel = MEDIUM_LEVEL;
             // Recolour
             easyButton.setBackground(Color.LIGHT_GRAY);
@@ -269,17 +381,8 @@ public class Minesweeper {
         resetGame();
     }
 
-    private void printGrid(){
-        System.out.println("-------------------------------");
-        for (int row=0; row < numRows; row++) {
-            for (int col = 0; col < numCols; col++) {
-                System.out.print("|" + numGrid[row][col]);
-            }
-            System.out.println("");
-        }
-    }
-
     private void startGUI() {
+    // Initializes GUI for first opening
         // Layouts
         levelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
         statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -294,7 +397,7 @@ public class Minesweeper {
     }
 
     private void updateGUI() {
-        //gameWindow.setVisible(false);
+    // Updates GUI for level changes
         setDimensions();
         // -----GAME WINDOW-----
         gameWindow.setSize(gameWindowDimension);
@@ -321,12 +424,10 @@ public class Minesweeper {
         resetButton.setPreferredSize(MineCell.CELL_DIMENSION);
         resetButton.setIcon(MineCell.SMILEY);
         resetButton.setName("reset");
-        // Timer
-        timeElapsedLabel.setText("00:00");
-        // Mines left
-        minesLeftLabel.setText(Integer.toString(minesLeft));
         // Add status to panel
+        statusPanel.add(minesLeftLabel);
         statusPanel.add(resetButton);
+        statusPanel.add(timeElapsedLabel);
 
         // -----BUTTON PANEL-----
         // Format
@@ -349,15 +450,7 @@ public class Minesweeper {
 
         gameWindow.setSize(gameWindowDimension);
         gameWindow.add(finalPanel);
-
-        // Repaint panels and frame
-//        gridPanel.repaint();
-//        statusPanel.repaint();
-//        levelPanel.repaint();
-//        finalPanel.repaint();
-//        gameWindow.repaint();
         gameWindow.setVisible(true);
-
     }
 
     public static void main(String[] args) {

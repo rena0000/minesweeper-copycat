@@ -1,9 +1,14 @@
+/**
+ * MINESWEEPER CELL CLASS
+ * @author Serena He
+ * ----------------------------------------------------------------------------------
+ * Extending the JButton class from Java Swing, defines a cell object in the Minesweeper grid.
+*/
+
 import javax.swing.*;
 import java.awt.*;
 
 public class MineCell extends JButton {
-
-    Minesweeper game;
 
     // --------BUTTON DIMENSION--------
     static final int CELL_WIDTH = 40;
@@ -45,6 +50,7 @@ public class MineCell extends JButton {
     static ImageIcon[] NUMBER_ICONS = new ImageIcon[]{BLANK_TILE, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT};
 
     // ----------CELL ATTRIBUTES---------
+    Minesweeper game;
     private int cellValue;
     private int cellRowLocation;
     private int cellColLocation;
@@ -104,9 +110,21 @@ public class MineCell extends JButton {
         return isFlagged;
     }
 
+    boolean getIsMine() {
+        return isMine;
+    }
+
+    void setMineOnWin() {
+        exposedImage = FLAG;
+    }
+
     // ----------MOUSE EVENTS---------s
 
     void cellLeftClicked() {
+        if (!game.getGameStart()) {
+            game.setGameStart(true);
+            // TODO: Start timer
+        }
         if (!isExposed && !isFlagged) {
             exposeCell();
             // Check if game lost
@@ -172,6 +190,7 @@ public class MineCell extends JButton {
         else {
             setIcon(exposedImage);
         }
+        game.checkWin();
     }
 
     // ----------FLAGS---------
@@ -237,6 +256,7 @@ public class MineCell extends JButton {
         isFlagged = false;
         game.decrementFlags();
     }
+
     private static ImageIcon getScaledImageIcon(ImageIcon image) {
     // Scale ImageIcon to appropriate cell dimensions
         Image img = image.getImage().getScaledInstance(CELL_WIDTH, CELL_WIDTH, Image.SCALE_SMOOTH);
