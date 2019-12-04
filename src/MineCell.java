@@ -121,9 +121,9 @@ public class MineCell extends JButton {
     // ----------MOUSE EVENTS---------s
 
     void cellLeftClicked() {
+        // Start game on first click
         if (!game.getGameStart()) {
-            game.setGameStart(true);
-            // TODO: Start timer
+            game.gameStart();
         }
         if (!isExposed && !isFlagged) {
             exposeCell();
@@ -137,6 +137,7 @@ public class MineCell extends JButton {
                 exposeZero();
             }
         }
+        game.checkWin();
     }
 
     void cellChorded() {
@@ -190,7 +191,6 @@ public class MineCell extends JButton {
         else {
             setIcon(exposedImage);
         }
-        game.checkWin();
     }
 
     // ----------FLAGS---------

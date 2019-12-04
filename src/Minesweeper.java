@@ -7,6 +7,8 @@
 */
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Random;
 import javax.swing.*;
 
@@ -40,6 +42,7 @@ public class Minesweeper {
     private int minesLeft;
     private boolean gameLost;
     private Timer gameTimer;
+    private int currentTime;
     private boolean gameStart;
     // Grid
     private int[][] numGrid;
@@ -74,7 +77,9 @@ public class Minesweeper {
     private JButton resetButton = new JButton();
 
     public Minesweeper() {
-    // Constructor - Minesweeper Game
+        /** CONSTRUCTOR
+         * Constructs a new Minesweeper game
+         */
         // Begin in easy mode
         this.totalMines = EASY_MINES;
         this.minesLeft = EASY_MINES;
@@ -88,8 +93,6 @@ public class Minesweeper {
         // Init grids
         this.numGrid = new int[numRows][numCols];
         this.cellGrid = new MineCell[numRows][numCols];
-        // Timer
-        gameStart = false;
 
         // -----LEVEL BUTTONS-----
         // Name
@@ -111,11 +114,22 @@ public class Minesweeper {
         timeElapsedLabel.setBackground(Color.BLACK);
         // Alignment
         minesLeftLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        minesLeftLabel.setHorizontalTextPosition(SwingConstants.LEFT);
-        timeElapsedLabel.setHorizontalTextPosition(SwingConstants.LEFT);
         timeElapsedLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         // Text
         minesLeftLabel.setText(Integer.toString(minesLeft));
+        minesLeftLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+        timeElapsedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+        // Timer
+        currentTime = 0;
+        timeElapsedLabel.setText(formatTime(currentTime));
+        gameStart = false;
+        gameTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTime++;
+                timeElapsedLabel.setText(formatTime(currentTime));
+            }
+        });
 
         // -----ADD MOUSELISTENER-----
         easyButton.addMouseListener(new MineMouseHandler(this));
@@ -128,6 +142,22 @@ public class Minesweeper {
         startGUI();
     }
 
+    static String formatTime(int time) {
+        /**
+         * Formats the current elapsed time to display on screen.
+         * @param time The current elapsed time in seconds.
+         * @return String The properly formatted time as a string.
+         */
+        if (time < 10) {
+            return ("00" + time);
+        }
+        else if (time < 100) {
+            return ("0" + time);
+        }
+        else {
+            return (Integer.toString(time));
+        }
+    }
 
     // ----------GETTER/SETTERS---------
 
@@ -167,27 +197,24 @@ public class Minesweeper {
         return gameStart;
     }
 
-    void setGameStart(boolean started) {
-        gameStart = started;
-    }
-
     // ----------COUNTERS---------
 
     void incrementFlags() {
         /**
-         * Increments the numFlags attribute of the Minesweeper class
+         * Increments the numFlags attribute of the Minesweeper class and decrements the "mines left" label
          * @return Nothing.
          */
         numFlags++;
+        updateMinesLeftLabel();
     }
 
     void decrementFlags() {
         /**
-         * Decrements the numFlags attribute of the Minesweeper class
+         * Decrements the numFlags attribute of the Minesweeper class and increments the "mines left" label
          * @return Nothing.
          */
-
         numFlags--;
+        updateMinesLeftLabel();
     }
 
     void incrementOpened() {
@@ -206,6 +233,7 @@ public class Minesweeper {
          * @return Nothing.
          */
         gameLost = true;
+        gameTimer.stop();
         exposeAll();
         resetButton.setIcon(MineCell.LOSE_FACE);
     }
@@ -215,6 +243,7 @@ public class Minesweeper {
          * Called when the game has been won. Exposes all cells on the grid with mines appearing as flags, and sets a custom face on the reset button.
          * @return Nothing.
          */
+        gameTimer.stop();
         resetButton.setIcon(MineCell.WIN_FACE);
         exposeAll();
     }
@@ -249,11 +278,17 @@ public class Minesweeper {
         }
     }
 
-
     // ----------GAME GUI/RESET---------
+    void gameStart( ) {
+        /**
+         * Set gameStart to true and begin timing
+         */
+        gameStart = true;
+        gameTimer.start();
+    }
 
     private void updateMinesLeftLabel() {
-        minesLeftLabel.setText(Integer.toString(minesLeft));
+        minesLeftLabel.setText(Integer.toString(totalMines-numFlags));
     }
 
     private void setDimensions() {
@@ -327,6 +362,8 @@ public class Minesweeper {
 
     void resetGame() {
         System.out.println("-------RESET-------");
+        // Stop timer
+        gameTimer.stop();
         // Re-init grids
         numGrid = new int[numRows][numCols];
         cellGrid = new MineCell[numRows][numCols];
@@ -335,9 +372,14 @@ public class Minesweeper {
         setDimensions();
         // Reset game values
         gameLost = false;
+        gameStart = false;
         minesLeft = totalMines;
         numFlags = 0;
         numOpened = 0;
+        currentTime = 0;
+        // Update labels
+        timeElapsedLabel.setText(formatTime(currentTime));
+        minesLeftLabel.setText(Integer.toString(minesLeft));
 
         initializeGrid();
         updateGUI();
@@ -450,6 +492,7 @@ public class Minesweeper {
 
         gameWindow.setSize(gameWindowDimension);
         gameWindow.add(finalPanel);
+        gameWindow.pack();
         gameWindow.setVisible(true);
     }
 
