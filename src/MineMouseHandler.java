@@ -71,19 +71,19 @@ public class MineMouseHandler implements MouseListener{
 
         // -----LEVEL-----
         if (button.getName() == "level" && leftClicked) {
-            int currentLevel = game.getGameLevel();
+            Minesweeper.Level currentLevel = game.getGameLevel();
 
             // Change easy
-            if (button.getText() == "Easy" && currentLevel != Minesweeper.EASY_LEVEL) {
-                game.changeLevel(Minesweeper.EASY_LEVEL);
+            if (button.getText() == "Easy" && currentLevel != Minesweeper.Level.EASY) {
+                game.changeLevel(Minesweeper.Level.EASY);
             }
             // Change medium
-            else if (button.getText() == "Medium" && currentLevel != Minesweeper.MEDIUM_LEVEL) {
-                game.changeLevel(Minesweeper.MEDIUM_LEVEL);
+            else if (button.getText() == "Medium" && currentLevel != Minesweeper.Level.MEDIUM) {
+                game.changeLevel(Minesweeper.Level.MEDIUM);
             }
             // Change hard
-            else if (button.getText() == "Hard" && currentLevel != Minesweeper.HARD_LEVEL) {
-                game.changeLevel(Minesweeper.HARD_LEVEL);
+            else if (button.getText() == "Hard" && currentLevel != Minesweeper.Level.HARD) {
+                game.changeLevel(Minesweeper.Level.HARD);
             }
         }
         // -----RESET-----

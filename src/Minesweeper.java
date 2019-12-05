@@ -27,10 +27,12 @@ public class Minesweeper {
     static final int HARD_ROWS = 16;
     static final int HARD_COLS = 30;
     // Level
-    private int gameLevel;
-    public static int EASY_LEVEL = 1;
-    public static int MEDIUM_LEVEL = 2;
-    public static int HARD_LEVEL = 3;
+    enum Level {
+        EASY,
+        MEDIUM,
+        HARD
+    }
+    private Level gameLevel;
 
     // -------------GAME-------------
     Minesweeper game;
@@ -86,7 +88,7 @@ public class Minesweeper {
         this.numRows = EASY_ROWS;
         this.numCols = EASY_COLS;
         // Flags
-        gameLevel = EASY_LEVEL;
+        gameLevel = Level.EASY;
         gameLost = false;
         numFlags = 0;
         numOpened = 0;
@@ -161,7 +163,7 @@ public class Minesweeper {
 
     // ----------GETTER/SETTERS---------
 
-    int getGameLevel() {
+    Level getGameLevel() {
         /**
          * Gets the current game level
          * @return int Number corresponding to a game level (1-EASY, 2-MEDIUM, 3-HARD)
@@ -385,24 +387,24 @@ public class Minesweeper {
         updateGUI();
     }
 
-    public void changeLevel(int level) {
-        if (level == EASY_LEVEL) {
+    public void changeLevel(Level level) {
+        if (level == Level.EASY) {
             System.out.println("-------EASY-------");
             totalMines = EASY_MINES;
             numRows = EASY_ROWS;
             numCols = EASY_COLS;
-            gameLevel = EASY_LEVEL;
+            gameLevel = Level.EASY;
             // Recolour
             easyButton.setBackground(Color.GRAY); // Current selected
             mediumButton.setBackground(Color.LIGHT_GRAY);
             hardButton.setBackground(Color.LIGHT_GRAY);
         }
-        else if (level == MEDIUM_LEVEL) {
+        else if (level == Level.MEDIUM) {
             System.out.println("-------MED-------");
             totalMines = MED_MINES;
             numRows = MED_ROWS;
             numCols = MED_COLS;
-            gameLevel = MEDIUM_LEVEL;
+            gameLevel = Level.MEDIUM;
             // Recolour
             easyButton.setBackground(Color.LIGHT_GRAY);
             mediumButton.setBackground(Color.GRAY); // Current selected
@@ -413,7 +415,7 @@ public class Minesweeper {
             totalMines = HARD_MINES;
             numRows = HARD_ROWS;
             numCols = HARD_COLS;
-            gameLevel = HARD_LEVEL;
+            gameLevel = Level.HARD;
             // Recolour
             easyButton.setBackground(Color.LIGHT_GRAY);
             mediumButton.setBackground(Color.LIGHT_GRAY);
