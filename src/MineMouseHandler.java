@@ -24,6 +24,10 @@ public class MineMouseHandler implements MouseListener{
 
     @Override
     public void mousePressed(MouseEvent e) {
+        /**
+         * Mouse has been pressed. Applicable only to Minesweeper grid cells. Checks if the left mouse button, right
+         * mouse button, or both have been pressed and responds accordingly.
+         */
         Object ob = e.getSource();
         JButton button = (JButton) ob;
 
@@ -64,6 +68,9 @@ public class MineMouseHandler implements MouseListener{
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        /**
+         * Mouse has been pressed and released. Applicable to level changing buttons and reset button.
+         */
         Object ob = e.getSource();
         JButton button = (JButton) ob;
 
