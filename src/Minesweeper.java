@@ -118,29 +118,29 @@ public class Minesweeper {
         minesLeftLabel.setForeground(Color.RED);
         timeElapsedLabel.setForeground(Color.RED);
         // Alignment
-        minesLeftLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        timeElapsedLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        minesLeftLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        timeElapsedLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        minesLeftLabel.setVerticalAlignment(SwingConstants.TOP);
+        timeElapsedLabel.setVerticalAlignment(SwingConstants.TOP);
         // Text
-        minesLeftLabel.setText(Integer.toString(minesLeft));
+        minesLeftLabel.setText(formatStatusNumber(minesLeft));
         minesLeftLabel.setFont(new Font("Consolas", Font.PLAIN, 34));
         timeElapsedLabel.setFont(new Font("Consolas", Font.PLAIN, 34));
         // Text position
-        minesLeftLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-        timeElapsedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-        minesLeftLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
-        timeElapsedLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
-        minesLeftLabel.setVerticalAlignment(SwingConstants.CENTER);
-        timeElapsedLabel.setVerticalAlignment(SwingConstants.CENTER);
+//        minesLeftLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+//        timeElapsedLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+//        minesLeftLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
+//        timeElapsedLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
 
         // Timer
         currentTime = 0;
-        timeElapsedLabel.setText(formatTime(currentTime));
+        timeElapsedLabel.setText(formatStatusNumber(currentTime));
         gameStart = false;
         gameTimer = new Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 currentTime++;
-                timeElapsedLabel.setText(formatTime(currentTime));
+                timeElapsedLabel.setText(formatStatusNumber(currentTime));
             }
         });
 
@@ -152,7 +152,7 @@ public class Minesweeper {
 
         // -----PANELS-----
         levelPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
 
         // Begin
         initializeGrid();
@@ -165,20 +165,20 @@ public class Minesweeper {
         gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    static String formatTime(int time) {
+    static String formatStatusNumber(int num) {
         /**
-         * Formats the current elapsed time to display on screen.
-         * @param time The current elapsed time in seconds.
-         * @return String The properly formatted time as a string.
+         * Formats number to the Minesweeper style.
+         * @param num Number to format.
+         * @return String The properly formatted number as a string.
          */
-        if (time < 10) {
-            return ("00" + time);
+        if (num < 10) {
+            return ("00" + num);
         }
-        else if (time < 100) {
-            return ("0" + time);
+        else if (num < 100) {
+            return ("0" + num);
         }
         else {
-            return (Integer.toString(time));
+            return (Integer.toString(num));
         }
     }
 
@@ -346,7 +346,7 @@ public class Minesweeper {
          * Update the number of mines left on the minesLeftLabel.
          * @return Nothing.
          */
-        minesLeftLabel.setText(Integer.toString(totalMines-numFlags));
+        minesLeftLabel.setText(formatStatusNumber(totalMines-numFlags));
     }
 
     private void setDimensions() {
@@ -450,8 +450,8 @@ public class Minesweeper {
         numOpened = 0;
         currentTime = 0;
         // Update labels
-        timeElapsedLabel.setText(formatTime(currentTime));
-        minesLeftLabel.setText(Integer.toString(minesLeft));
+        timeElapsedLabel.setText(formatStatusNumber(currentTime));
+        minesLeftLabel.setText(formatStatusNumber(minesLeft));
 
         initializeGrid();
         updateGUI();
@@ -532,21 +532,19 @@ public class Minesweeper {
         timeElapsedLabel.setPreferredSize(new Dimension(80, MineCell.CELL_WIDTH - 8));
         // Label and reset spacing
         int totalStatusPanelWidth = (int)statusPanelDimension.getWidth();
-        int statusSpaceWidth = ((totalStatusPanelWidth-160-MineCell.CELL_WIDTH)/2);
-        System.out.println(statusSpaceWidth);
-        minesLeftLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        timeElapsedLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
+        int statusSpaceWidth = ((totalStatusPanelWidth-190-MineCell.CELL_WIDTH)/2);
         // Reset button
         resetButton.setPreferredSize(MineCell.CELL_DIMENSION);
         resetButton.setIcon(MineCell.SMILEY);
         resetButton.setName("reset");
         // Add status to panel
+        statusPanel.removeAll();
+        statusPanel.add(Box.createRigidArea(new Dimension(statusSpaceWidth, MineCell.CELL_WIDTH)));
         statusPanel.add(minesLeftLabel);
-        statusPanel.add(Box.createRigidArea(new Dimension(statusSpaceWidth, MineCell.CELL_WIDTH)));
         statusPanel.add(resetButton);
-        statusPanel.add(Box.createRigidArea(new Dimension(statusSpaceWidth, MineCell.CELL_WIDTH)));
         statusPanel.add(timeElapsedLabel);
+        statusPanel.add(Box.createRigidArea(new Dimension(statusSpaceWidth, MineCell.CELL_WIDTH)));
+        statusPanel.repaint();
 
         // -----BUTTON PANEL-----
         // Format
@@ -554,6 +552,7 @@ public class Minesweeper {
         gridPanel.setPreferredSize(gridPanelDimension);
         gridPanel.setMaximumSize(gridPanel.getPreferredSize());
         gridPanel.setLayout(new GridLayout(numRows, numCols, 0, 0));
+        gridPanel.removeAll();
         // Add MineCells
         for (int row=0; row < numRows; row++) {
             for (int col=0; col < numCols; col++) {
