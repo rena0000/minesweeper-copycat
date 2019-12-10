@@ -11,8 +11,13 @@ import javax.swing.*;
 
 public class MineMouseHandler implements MouseListener{
 
-    Minesweeper game;
-    MineCell cell;
+    private static long delayThresh = 50; // milliseconds
+    private static int  firstClick = 0;
+    private static long firstClickTime;
+    private static long secondClickTime;
+
+    private Minesweeper game;
+    private MineCell cell;
 
     public MineMouseHandler(Minesweeper game) {
         this.game = game;
@@ -33,14 +38,38 @@ public class MineMouseHandler implements MouseListener{
 
         boolean leftPressed = SwingUtilities.isLeftMouseButton(e);
         boolean rightPressed = SwingUtilities.isRightMouseButton(e);
-        boolean isChord = leftPressed && rightPressed;
+        boolean isChord = false;
+
+        secondClickTime = System.currentTimeMillis();
+        long timeDiff = secondClickTime - firstClickTime;
+
+        // Check if button is a first or second click
+        if (firstClick == 0 || timeDiff >= delayThresh) {
+            firstClickTime = System.currentTimeMillis();
+            firstClick = leftPressed == true ? 1 : 3;
+        }
+        else if ((firstClick == 1 && rightPressed == true) || (firstClick == 3 && leftPressed == true)){
+            secondClickTime = System.currentTimeMillis();
+            System.out.println("Delay: " + (secondClickTime - firstClickTime));
+            if (timeDiff < delayThresh) {
+                isChord = true;
+                firstClick = 0;
+                firstClickTime = 0;
+                secondClickTime = 0;
+            }
+        }
+        // No chord, reset everything
+        else {
+            firstClick = 0;
+            firstClickTime = 0;
+            secondClickTime = 0;
+        }
 
         // -----MINECELL-----
         if (button.getName() == null){
             MineCell cell = (MineCell) button;
             // Chord
             if (isChord) {
-                System.out.println("**Chord**");
                 if (cell.getIsExposed()) {
                     cell.cellChorded();
                 }
@@ -61,7 +90,7 @@ public class MineMouseHandler implements MouseListener{
                 cell.cellLeftClicked();
             }
             else {
-
+                // Do nothing
             }
         }
     }

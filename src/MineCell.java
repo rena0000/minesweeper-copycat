@@ -11,7 +11,7 @@ import java.awt.*;
 public class MineCell extends JButton {
 
     // --------BUTTON DIMENSION--------
-    static final int CELL_WIDTH = 40;
+    static final int CELL_WIDTH = 36;
     static final Dimension CELL_DIMENSION = new Dimension(CELL_WIDTH, CELL_WIDTH);
 
     // -------------IMAGES-------------
@@ -189,7 +189,6 @@ public class MineCell extends JButton {
                 }
             }
         }
-        game.checkWin();
     }
 
     void cellChorded() {
@@ -197,7 +196,9 @@ public class MineCell extends JButton {
          * Called in response to a mouse chord event. Exposes surrounding cells if the cell has been flagged correctly.
          * @return Nothing.
          */
-        exposeZero();
+        if (isExposed) {
+            exposeZero();
+        }
     }
 
     // ----------EXPOSE---------
@@ -253,6 +254,8 @@ public class MineCell extends JButton {
         else {
             setIcon(exposedImage);
         }
+        game.checkWin();
+
     }
 
     // ----------FLAGS---------

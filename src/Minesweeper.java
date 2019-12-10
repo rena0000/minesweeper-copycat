@@ -71,8 +71,9 @@ public class Minesweeper {
     private JLabel timeElapsedLabel = new JLabel();
 
     // Buttons
-    private static int LEVEL_BUTTON_FONT = 14;
-    private static int LEVEL_BUTTON_WIDTH = 100;
+    private static int LEVEL_BUTTON_FONT = 12;
+    private static int LEVEL_BUTTON_WIDTH = (int)(MineCell.CELL_WIDTH*2.5);
+
     private JButton easyButton = new JButton("Easy");
     private JButton mediumButton = new JButton("Medium");
     private JButton hardButton = new JButton("Hard");
@@ -528,8 +529,8 @@ public class Minesweeper {
         statusPanel.setPreferredSize(statusPanelDimension);
         statusPanel.setMaximumSize(statusPanel.getPreferredSize());
         // Labels
-        minesLeftLabel.setPreferredSize(new Dimension(80, MineCell.CELL_WIDTH - 8));
-        timeElapsedLabel.setPreferredSize(new Dimension(80, MineCell.CELL_WIDTH - 8));
+        minesLeftLabel.setPreferredSize(new Dimension(MineCell.CELL_WIDTH*2, MineCell.CELL_WIDTH - 8));
+        timeElapsedLabel.setPreferredSize(new Dimension(MineCell.CELL_WIDTH*2, MineCell.CELL_WIDTH - 8));
         // Label and reset spacing
         int totalStatusPanelWidth = (int)statusPanelDimension.getWidth();
         int statusSpaceWidth = ((totalStatusPanelWidth-190-MineCell.CELL_WIDTH)/2);
