@@ -67,6 +67,7 @@ public class Minesweeper {
     private JPanel finalPanel = new JPanel();
 
     // Labels
+    private static int STATUS_LABEL_FONT = 28;
     private JLabel minesLeftLabel = new JLabel();
     private JLabel timeElapsedLabel = new JLabel();
 
@@ -125,8 +126,8 @@ public class Minesweeper {
         timeElapsedLabel.setVerticalAlignment(SwingConstants.TOP);
         // Text
         minesLeftLabel.setText(formatStatusNumber(minesLeft));
-        minesLeftLabel.setFont(new Font("Consolas", Font.PLAIN, 34));
-        timeElapsedLabel.setFont(new Font("Consolas", Font.PLAIN, 34));
+        minesLeftLabel.setFont(new Font("Consolas", Font.PLAIN, STATUS_LABEL_FONT));
+        timeElapsedLabel.setFont(new Font("Consolas", Font.PLAIN, STATUS_LABEL_FONT));
         // Text position
 //        minesLeftLabel.setHorizontalTextPosition(SwingConstants.CENTER);
 //        timeElapsedLabel.setHorizontalTextPosition(SwingConstants.CENTER);

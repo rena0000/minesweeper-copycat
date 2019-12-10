@@ -11,7 +11,7 @@ import java.awt.*;
 public class MineCell extends JButton {
 
     // --------BUTTON DIMENSION--------
-    static final int CELL_WIDTH = 36;
+    static final int CELL_WIDTH = 32;
     static final Dimension CELL_DIMENSION = new Dimension(CELL_WIDTH, CELL_WIDTH);
 
     // -------------IMAGES-------------
@@ -168,26 +168,7 @@ public class MineCell extends JButton {
         }
         if (!isExposed && !isFlagged) {
             exposeCell();
-            // MINE
-            if (isMine) {
-                // If game hasn't been lost yet, end game and set current mine to a special icon.
-                if (!game.isGameLost()) {
-                    game.loseGame();
-                    setIcon(BAD_MINE);
-                }
-            }
-            // NOT A MINE
-            else {
-                if (isFlaggedFully() && !isFlaggedCorrectly()) {
-                    game.exposeWrongFlags(this);
-                    game.loseGame();
-                }
-                else {
-                    if (cellValue == 0) {
-                        exposeZero();
-                    }
-                }
-            }
+            evaluateCell();
         }
     }
 
@@ -197,6 +178,7 @@ public class MineCell extends JButton {
          * @return Nothing.
          */
         if (isExposed) {
+            evaluateCell();
             exposeZero();
         }
     }
@@ -225,6 +207,7 @@ public class MineCell extends JButton {
                             // If adjacent cell also zero, expose recursively
                             if (!adjCell.isExposed && !adjCell.isFlagged && !adjCell.isMine) {
                                 adjCell.exposeCell();
+                                evaluateCell();
                                 if (adjCell.cellValue == 0) {
                                     adjCell.exposeZero();
                                 }
@@ -256,6 +239,33 @@ public class MineCell extends JButton {
         }
         game.checkWin();
 
+    }
+
+    private void evaluateCell() {
+        /**
+         * Check exposed cell against game win/lose conditions.
+         * @return Nothing.
+         */
+        // MINE
+        if (isMine) {
+            // If game hasn't been lost yet, end game and set current mine to a special icon.
+            if (!game.isGameLost()) {
+                game.loseGame();
+                setIcon(BAD_MINE);
+            }
+        }
+        // NOT A MINE
+        else {
+            if (isFlaggedFully() && !isFlaggedCorrectly()) {
+                game.exposeWrongFlags(this);
+                game.loseGame();
+            }
+            else {
+                if (cellValue == 0) {
+                    exposeZero();
+                }
+            }
+        }
     }
 
     // ----------FLAGS---------
