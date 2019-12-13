@@ -8,4 +8,4 @@ A copycat of the classic Minesweeper game, written using Java Swing.
 4. Cute cat faces in place of the smiley icon
 
 ## Release
-Find the `.jar` file under `./out/
+Find the `.jar` file under `./out/`
